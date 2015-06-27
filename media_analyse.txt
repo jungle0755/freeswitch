@@ -182,7 +182,9 @@ v_engine = &smh->engines[SWITCH_MEDIA_TYPE_VIDEO];
 =================【重要】===========
 1. 媒体协商
 收到主叫的INVITE后，下发给被叫的INVITE其中SDP的处理方式
-sofia_outgoing_channel -> switch_core_media_check_outgoing_proxy
+switch_core_session.c:switch_core_session_outgoing_channel -> mod_sofia.c:sofia_outgoing_channel -> 
+switch_core_media_check_outgoing_proxy -> mod_sofia.c:sofia_on_init -> sofia_glue.c:sofia_glue_do_invite -> nua.c:nua_invite
+
 sofia_on_init -> sofia_glue_do_invite
 sofia_glue.c:758 switch_core_media_choose_port 预占用音频媒体端口
 sofia_glue.c:764 switch_core_media_choose_port 预占用视频媒体端口
@@ -191,7 +193,7 @@ sofia_glue.c:1236  switch_core_media_gen_local_sdp(此方法中生成了SDP)
 tech_pvt->mparams.local_sdp_str
 switch_core_media_set_local_sdp
 
-收到200OK后 执行 mod_sofia.c:758 sofia_answer_channel  
+被叫应答，收到200OK后 执行 mod_sofia.c:758 sofia_answer_channel  
 sofia_media.c:87 sofia_media_tech_media 将主被叫的媒体串联起来
 sofia_media.c:58 sofia_media_activate_rtp
 switch_core_media.c:5649 switch_core_media_activate_rtp
