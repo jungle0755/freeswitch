@@ -123,93 +123,118 @@ You need to go to the Identity -> RTP and set the RTP/SAVP to optional. That wil
 My experience is that it is not handling m=application . :-(
 
 =====================================================
-SDP��fmtp��ʹ��
- a=fmtp ����DTMF�����źš��绰���͵绰�źŵ�RTP���ظ�ʽ;
+SDP中fmtp的使用
+ a=fmtp 用于DTMF数字信号、电话音和电话信号的RTP负载格式;
  
-    �����SDP��Ϣ�а����� a=fmtp �ֶΣ����ʾ���ͷ�����������DTMF��events 0 through 15�������źͻ�������
-   ���磺��payload-typeΪ100�� 
-    �� a=fmtp:100 0-15,66,70
+    如果在SDP消息中包含有 a=fmtp 字段，则表示发送方有能力接受DTMF（events 0 through 15），拨号和回铃音。
+   例如：若payload-type为100， 
+    则 a=fmtp:100 0-15,66,70
  
-       �����ܷ���invite�������յ�a=fmtp��Ϣ��
-      ������ܷ����������е��κ�һ����Ϣ��������Ӧ��Ϣ�в�����a=fmtp��Ϣ��
+       当接受方在invite请求中收到a=fmtp信息，
+      如果接受方不接受其中的任何一种信息，则在响应消息中不包含a=fmtp信息；
  
-      ������ܷ���֧��a=fmtp�е�����һ�֣��粻֧��66��70����������Ӧ����Ϣ��ֻ������1-15�ֶΣ�
+      如果接受方不支持a=fmtp中的其中一种（如不支持66，70），则在响应的消息中只包含有1-15字段；
  
   
-   ���£�
+   如下：
    >>From A in invite:
    >a=fmtp:101 1-15,66,70
    >>From B in 200 OK:
    >>a=fmtp:101 1-15
 
 =====================================================
-����1000�� m=audio 10500 RTP/AVP 8 0 18 4 96 97
-����1001��m=audio 10502 RTP/AVP 8 0 101
-��������Ϣ�л�ȡsdp SOATAG_REMOTE_SDP_STR_REF(r_sdp)
-��ʼ����ý��Э�� 
+主叫1000： m=audio 10500 RTP/AVP 8 0 18 4 96 97
+被叫1001：m=audio 10502 RTP/AVP 8 0 101
+从请求消息中获取sdp SOATAG_REMOTE_SDP_STR_REF(r_sdp)
+开始处理媒体协商 
 
-ý��Э�̻������
+媒体协商会调两次
 1 sofia_answer_channel 
 2 switch_core_media_activate_rtp ->  switch_core_media_set_codec -> switch_core_codec_init_with_bitrate
 
 
-�յ�INVITE�������һ�� switch_core_media.c:3138 switch_core_media_negotiate_sdp
-�յ�200OKӦ�����һ�� switch_core_media.c:3138 switch_core_media_negotiate_sdp
+收到INVITE请求调用一次 switch_core_media.c:3138 switch_core_media_negotiate_sdp
+收到200OK应答调用一次 switch_core_media.c:3138 switch_core_media_negotiate_sdp
 
 2015-06-19 18:18:50.309586 [DEBUG] switch_core_media.c:2327 Set VIDEO Codec sofia/internal/1000@10.175.1.109:5061 h264/90000 0 ms
 2015-06-19 18:18:50.309586 [ERR] switch_core_codec.c:650 Invalid codec CELT!
 2015-06-19 18:18:50.309586 [ERR] switch_core_media.c:2448 Can't load codec?
 
 
-����RTP�շ� switch_core_media_activate_rtp
-��дRTP��  switch_core_media_read_frame  switch_core_media_write_frame �����switch_core_rtp����صķ���
-����RTPý���� switch_core_rtp.c 
+启动RTP收发 switch_core_media_activate_rtp
+读写RTP流  switch_core_media_read_frame  switch_core_media_write_frame 会调用switch_core_rtp中相关的方法
+处理RTP媒体流 switch_core_rtp.c 
 
 switch_core_media.c:start_video_thread  
 switch_thread_create(&v_engine->media_thread, thd_attr, video_helper_thread, &v_engine->mh, switch_core_session_get_pool(session));
-switch_ivr_bridge.c��413 vid_thread = launch_video(&vh);
+switch_ivr_bridge.c：413 vid_thread = launch_video(&vh);
 switch_ivr_bridge.c:599 Ending video thread.
 
-BFCP�͸�������˼·���ο�start_video_thread��ƵRTP�����ķ�ʽ��������һ���̣߳�ʵ��BFCP���ݵ�ת��
-switch_core_media_negotiate_sdp ý��Э����Ҫ����BFCP�͸�����Э�̴���
-switch_core_media.c ����ļ�����Ҫ������һ��BFCP���߳�
-switch_rtp_engine_t *a_engine, *v_engine, *assi_engine; Ŀǰֻ������Ƶý�����棬��Ҫ���Ӹ�����ý������
+BFCP和辅流处理思路：参考start_video_thread视频RTP处理的方式，新启动一个线程，实现BFCP数据的转发
+switch_core_media_negotiate_sdp 媒体协商需要增加BFCP和辅流的协商处理
+switch_core_media.c 这个文件中需要新启动一个BFCP的线程
+switch_rtp_engine_t *a_engine, *v_engine, *assi_engine; 目前只有音视频媒体引擎，需要增加辅流的媒体引擎
 switch_bfcp_engine_t
 switch_media_handle_t *smh; 
 a_engine = &smh->engines[SWITCH_MEDIA_TYPE_AUDIO];
 v_engine = &smh->engines[SWITCH_MEDIA_TYPE_VIDEO];
 
-=================����Ҫ��===========
-1. ý��Э��
-�յ����е�INVITE���·������е�INVITE����SDP�Ĵ�����ʽ
-switch_core_session.c:switch_core_session_outgoing_channel -> mod_sofia.c:sofia_outgoing_channel -> 
-switch_core_media_check_outgoing_proxy -> mod_sofia.c:sofia_on_init -> sofia_glue.c:sofia_glue_do_invite -> nua.c:nua_invite
+=================【重要】===========
+1. 媒体协商
+收到主叫的INVITE后，下发给被叫的INVITE其中SDP的处理方式
+switch_media_handle_create 创建媒体引擎,（主被叫session分别调用了一次）
+sofia_glue_attach_private 根据profile初始化媒体参数tech_pvt->mparams
 
+主叫：
+[thread 13]nua_stack.c:nua_application_event->sofia.c:sofia_event_callback->switch_core_session.c:switch_core_session_request_uuid->(创建主叫session,聚合 message/event/signal队列)sofia_glue.c:sofia_glue_attach_private->switch_core_media.c:switch_media_handle_create(设置私有数据对象和媒体引擎)->
+switch_core_session.c:switch_core_session_thread_launch->switch_core_session_queue_signal_data(信令消息队列)
+[thread 139 新启主叫线程,循环监控状态机] 
+switch_core_session.c:switch_core_session_thread->switch_core_state_machine.c:switch_core_session_run(处于CS_INIT状态)->switch_core_state_machine.c:switch_core_standard_on_init(调用此方法之间将状态从CS_INIT修改成CS_ROUTING)->switch_core_state_machine.c:switch_core_standard_on_routing(#Look for a dialplan and find something to do 同时设置呼叫状态为 CS_EXECUTE )->switch_core_state_machine:switch_core_standard_on_execute(执行各个extention)->switch_core_session.c:switch_core_session_exec
+(switch_core_session.c中聚集了一个应用接口对象，通过此对象调用各个应用提供的能力:application_interface->application_function)
+被叫：
+-> mod_dptools.c:audio_bridge_function->switch_ivr_originate.c:switch_ivr_originate(启动被叫初始化流程outbound_profile)->
+switch_core_session.c:switch_core_session_outgoing_channel(user_io_routines)->mod_dptools.c:user_outgoing_channel（初始被叫session和channel对象）
+switch_ivr_originate.c:switch_ivr_originate(outbound_profile)->switch_core_session.c:switch_core_session_outgoing_channel(sofia_io_routines)->
+mod_sofia.c:sofia_outgoing_channel(设置去话信令相关参数)
+switch_ivr_originate(outbound_profile)->switch_core_session_thread_launch->
+[thread 140 新启被叫线程,循环监控状态机] 
+switch_core_session.c:switch_core_session_thread->switch_core_state_machine.c:switch_core_session_run->mod_sofia.c:sofia_outgoing_channel->sofia_glue.c:sofia_glue_attach_private->switch_core_media.c:switch_media_handle_create
+
+TODO====================================
+
+
+mod_sofia.c:sofia_on_init->sofia_glue.c:sofia_glue_do_invite->switch_core_media.c:switch_core_media_check_video_codecs
+下发路由前 会在 switch_core_media_check_video_codecs 方法中分析SDP并对视频进行检查
+ 
+
+
+switch_core_session.c:switch_core_session_outgoing_channel -> mod_sofia.c:sofia_outgoing_channel（创建被叫session和channel对象）-> mod_sofia.c:sofia_on_init -> sofia_glue.c:sofia_glue_do_invite -> nua.c:nua_invite
+switch_core_media.c:switch_core_media_gen_local_sdp(生成SDP)
 sofia_on_init -> sofia_glue_do_invite
-sofia_glue.c:758 switch_core_media_choose_port Ԥռ����Ƶý��˿�
-sofia_glue.c:764 switch_core_media_choose_port Ԥռ����Ƶý��˿�
+sofia_glue.c:758 switch_core_media_choose_port 预占用音频媒体端口
+sofia_glue.c:764 switch_core_media_choose_port 预占用视频媒体端口
 
-sofia_glue.c:1236  switch_core_media_gen_local_sdp(�˷�����������SDP)
+sofia_glue.c:1236  switch_core_media_gen_local_sdp(此方法中生成了SDP)
 tech_pvt->mparams.local_sdp_str
 switch_core_media_set_local_sdp
 
-����Ӧ���յ�200OK�� ִ�� mod_sofia.c:758 sofia_answer_channel  
-sofia_media.c:87 sofia_media_tech_media �������е�ý�崮������
+被叫应答，收到200OK后 执行 mod_sofia.c:758 sofia_answer_channel  
+sofia_media.c:87 sofia_media_tech_media 将主被叫的媒体串联起来
 sofia_media.c:58 sofia_media_activate_rtp
 switch_core_media.c:5649 switch_core_media_activate_rtp
 switch_rtp.c:2301 switch_rtp_request_port
 
-2. ��RTP����
+2. 建RTP连接
 engine->local_sdp_port = switch_rtp_request_port(smh->mparams->rtpip)
 switch_core_port_allocator_request_port
 switch_core_media_activate_rtp->switch_rtp_new
 
-3. ����ת��
+3. 处理转发
 
 
 ============================
-��Ƶ���� 4���߳�
-��Ƶ���� 2���߳�
+视频呼叫 4个线程
+音频呼叫 2个线程
 
 
 
