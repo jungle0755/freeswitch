@@ -64,7 +64,7 @@ sofia_glue_attach_private 根据profile初始化媒体参数tech_pvt->mparams
 
 主叫：
 [thread 13]nua_stack.c:nua_application_event->sofia.c:sofia_event_callback->switch_core_session.c:switch_core_session_request_uuid->(创建主叫session,聚合 message/event/signal队列)sofia_glue.c:sofia_glue_attach_private->switch_core_media.c:switch_media_handle_create(设置私有数据对象和媒体引擎)->
-switch_core_session.c:switch_core_session_thread_launch->switch_core_session_queue_signal_data(信令消息队列)
+switch_core_session.c:switch_core_session_thread_launch->switch_core_session_queue_signal_data(将SIP信令相关数据放入消息队列)
 [thread 139 新启主叫线程,循环监控状态机] 
 switch_core_session.c:switch_core_session_thread->switch_core_state_machine.c:switch_core_session_run(处于CS_INIT状态)->switch_core_state_machine.c:switch_core_standard_on_init(调用此方法之间将状态从CS_INIT修改成CS_ROUTING)->switch_core_state_machine.c:switch_core_standard_on_routing(#Look for a dialplan and find something to do 同时设置呼叫状态为 CS_EXECUTE )->switch_core_state_machine:switch_core_standard_on_execute(执行各个extention)->switch_core_session.c:switch_core_session_exec
 (switch_core_session.c中聚集了一个应用接口对象，通过此对象调用各个应用提供的能力:application_interface->application_function)
@@ -72,10 +72,11 @@ switch_core_session.c:switch_core_session_thread->switch_core_state_machine.c:sw
 -> mod_dptools.c:audio_bridge_function->switch_ivr_originate.c:switch_ivr_originate(启动被叫初始化流程outbound_profile)->
 switch_core_session.c:switch_core_session_outgoing_channel(user_io_routines)->mod_dptools.c:user_outgoing_channel（初始被叫session和channel对象）
 switch_ivr_originate.c:switch_ivr_originate(outbound_profile)->switch_core_session.c:switch_core_session_outgoing_channel(sofia_io_routines)->
-mod_sofia.c:sofia_outgoing_channel(设置去话信令相关参数)
+mod_sofia.c:sofia_outgoing_channel(设置去话信令相关参数)->sofia_glue.c:sofia_glue_attach_private->switch_core_media.c:switch_media_handle_create
 switch_ivr_originate(outbound_profile)->switch_core_session_thread_launch->
+
 [thread 140 新启被叫线程,循环监控状态机] 
-switch_core_session.c:switch_core_session_thread->switch_core_state_machine.c:switch_core_session_run->mod_sofia.c:sofia_outgoing_channel->sofia_glue.c:sofia_glue_attach_private->switch_core_media.c:switch_media_handle_create
+switch_core_session.c:switch_core_session_thread->switch_core_state_machine.c:switch_core_session_run->mod_sofia.c:sofia_on_init->sofia_glue.c:sofia_glue_do_invite->switch_core_media.c:switch_core_media_check_video_codecs
 
 TODO====================================
 
