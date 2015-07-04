@@ -31,11 +31,8 @@ http://www.unixodbc.org/doc/conn_pool.html
 
 ==== odbc.ini ====
 [freeswitch]
-
-Description = PostgreSQL Unicode
-Driver = PostgreSQL Unicode
-Trace = No
-TraceFile = /tmp/psqlodbc.log
+Description = PostgreSQL 
+Driver = PostgreSQL 
 Database = freeswitch
 Servername = 127.0.0.1
 UserName =
@@ -54,8 +51,8 @@ ConnSettings =
 TraceFile  = /tmp/odbc.trace
 Trace      = 1 //Enabling ODBC Tracing on Unix
 Pooling = Yes
-[PostgreSQL Unicode]
-Description             = PostgreSQL ODBC driver (Unicode version)
+[PostgreSQL]
+Description     = PostgreSQL ODBC driver (Unicode version)
 Driver          = /usr/lib/odbc/psqlodbcw.so
 Setup           = /usr/lib/odbc/libodbcpsqlS.so
 Debug           = 0
