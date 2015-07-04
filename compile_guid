@@ -1,0 +1,16 @@
+安装依赖库
+apt-get -y install build-essential subversion automake  wget libtool libncurses5-dev  git-core libtiff-dev libjpeg-dev libsqlite3-dev libldns-dev libpcre3-dev libspeexdsp-dev libspeex-dev libopus-dev libedit-dev  git libcurl4-openssl-dev libexpat1-dev libssl-dev libtiff4-dev libx11-dev unixodbc-dev zlib1g-dev libzrtpcpp-dev libasound2-dev libogg-dev libvorbis-dev libperl-dev libgdbm-dev libdb-dev python-dev uuid-dev bison autoconf g++ libncurses-dev libpq-dev
+安装数据库：
+apt-get install mysql-serve
+apt-get install unixodbc unixodbc-dev libmyodbc odbc-postgresql
+
+wget http://files.freeswitch.org/freeswitch-1.4.17.tar.gz
+
+./configure --enable-core-odbc-support --enable-core-pgsql-support --prefix /home/huawei/freeswitch
+ make install
+ make sounds-install
+ make moh-install
+ 
+ 
+ 统计代码行
+find . -name "*.c"|xargs cat|grep -v ^$|wc –l
