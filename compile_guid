@@ -31,6 +31,12 @@ sudo su - postgres
  psql -U dbuser -d exampledb -h 127.0.0.1 -p 5432
  
  strace -e trace=network isql -v mydsn 跟踪程序的网络连接
+ 
+ select * from pg_indexes where tablename='log'
+ CREATE TABLE uc_numbers(
+   id CHAR(50) PRIMARY KEY      NOT NULL,
+   passwd CHAR(50)
+);  
 
 pg_hba.conf
 local all    all               trust
