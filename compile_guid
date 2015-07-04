@@ -2,7 +2,7 @@
 apt-get -y install build-essential subversion automake  wget libtool libncurses5-dev  git-core libtiff-dev libjpeg-dev libsqlite3-dev libldns-dev libpcre3-dev libspeexdsp-dev libspeex-dev libopus-dev libedit-dev  git libcurl4-openssl-dev libexpat1-dev libssl-dev libtiff4-dev libx11-dev unixodbc-dev zlib1g-dev libzrtpcpp-dev libasound2-dev libogg-dev libvorbis-dev libperl-dev libgdbm-dev libdb-dev python-dev uuid-dev bison autoconf g++ libncurses-dev libpq-dev
 安装数据库：
 apt-get update
-apt-get install postgresql postgresql-contrib
+apt-get install postgresql postgresql-contrib pgadmin3
 apt-get install mysql-serve  mysql-client  
 apt-get install unixodbc unixodbc-dev libmyodbc odbc-postgresql
 
@@ -16,3 +16,17 @@ wget http://files.freeswitch.org/freeswitch-1.4.17.tar.gz
  
  统计代码行
 find . -name "*.c"|xargs cat|grep -v ^$|wc –l
+
+
+psql基本操作
+
+sudo su - postgres
+ $psql
+ CREATE USER dbuser WITH PASSWORD 'password';
+ CREATE DATABASE exampledb OWNER dbuser;
+ GRANT ALL PRIVILEGES ON DATABASE exampledb to dbuser;
+ alter user postgres with password 'foobar';
+ alter role xxxx1 superuser;
+ alter role xxxx1 createdb;
+ psql -U dbuser -d exampledb -h 127.0.0.1 -p 5432
+
