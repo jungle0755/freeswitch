@@ -29,6 +29,8 @@ sudo su - postgres
  alter role xxxx1 superuser;
  alter role xxxx1 createdb;
  psql -U dbuser -d exampledb -h 127.0.0.1 -p 5432
+ 
+ strace -e trace=network isql -v mydsn 跟踪程序的网络连接
 
 pg_hba.conf
 local all    all               trust
