@@ -30,3 +30,10 @@ sudo su - postgres
  alter role xxxx1 createdb;
  psql -U dbuser -d exampledb -h 127.0.0.1 -p 5432
 
+pg_hba.conf
+local all    all               trust
+host all all  0.0.0.0/0 md5  
+
+postgresql.conf
+找到 listen_addresses = 'localhost' 这一行，将它改为：
+listen_addresses = '*' 
