@@ -1,0 +1,19 @@
+ Integration using REST API(FreeSwitch as HTTPclient)
+1 重新编译并加载mod_curl模块
+2 使用方法
+curl url [headers|json|content-type <mime-type>|connect-timeout <seconds>|timeout <seconds>] [get|head|post|delete|put [data]]
+3 LUA代码示例
+api = freeswitch.API();
+post_response = api:execute("curl", "http://10.175.1.108:8080/portal/index.html post {a=1,b=2}")
+
+4 消息抓包
+POST http://10.175.1.108:8080/portal/index.html HTTP/1.1
+Proxy-Authorization: Basic dzAwMjU1Njg2OkhhcHB5LTIwMTU=
+User-Agent: freeswitch-curl/1.0
+Host: 10.175.1.108:8080
+Accept: */*
+Proxy-Connection: Keep-Alive
+Content-Length: 9
+Content-Type: application/x-www-form-urlencoded
+
+{a=1,b=2}
