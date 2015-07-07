@@ -64,3 +64,18 @@ Threading = 0  //http://www.it165.net/os/html/201107/372.html
 MaxLongVarcharSize=65536
 CPTimeout       = 600 //CPTimeout defines the time in seconds that unused connections remain in the pool before being dropped by the driver manager.
 
+
+<param name="sip-force-expires" value="36000"/>  强制会话超时时长，减少注册次数
+
+Postgres调优
+update语句会比较慢，有很多索引需要更新, 更新索引时会写chain-log日志,IO会比较高。
+explain + update 语句 查询下执行计划
+
+top 查看IO情况 io wait要低于10%， 30~40%就比较高了
+临时表  Create UNLOGGED table test (id int); 表坏块情况 无法恢复，需要重新创建
+优化措施
+可以把  配置文件的shared_buffers 调整到最大内存的1/4
+另外work_buffer 调大到512M
+连接池没有开启（好像不太推荐设置）
+
+sip-force-expires 
